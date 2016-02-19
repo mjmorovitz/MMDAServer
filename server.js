@@ -21,11 +21,11 @@ app.use(express.static(__dirname + '/public'));
 
 app.post('/addRoute', function(request, response) {
 	var childID = request.body.childID;
+	//route ID = date
 	var routeID = request.body.routeID;
 	var polylines = request.body.polylines;
 	var intersectX = request.body.intersectX;
 	var streetX = request.body.streetX;
-	routeID = routeID.replace(/[^\w\s]/gi, '');
 	var toInsert = {
 		"routeID": routeID,
 		"polylines": polylines,
@@ -59,14 +59,14 @@ app.post('/addRoute', function(request, response) {
 app.post('/addChild', function(request, response) {
 	var childID = request.body.childID;
 	var parentID = request.body.parentID;
+	var childName = request.body.childName
 	// no routes when first added
 	var routes = [];
-	childID = childID.replace(/[^\w\s]/gi, '');
-	parentID = parentID.replace(/[^\w\s]/gi, '');
 	var toInsert = {
 		"childID": childID,
 		"parentID": parentID,
-		"routes": routes
+		"routes": routes,
+		"childName": childName
 	};
 	db.collection('children', function(error, coll) {
 		var id = coll.insert(toInsert, function(error, saved) {
@@ -98,7 +98,7 @@ app.get('/', function(request, response) {
 			if (!err) {
 				indexPage += "<h1>Routes</h1>";
 				for (var count = 0; count < cursor.length; count++) {
-					indexPage += "<p>child " + cursor[count].childID + " routeID "+ cursor[count].routeID + " polylines "+ cursor[count].polylines + " intersections crossed " + cursor[count].intersectX + " streets crossed " + cursor[count].streetX +"</p>";
+					indexPage += "<p>child " + cursor[count].childID + " " + cursor[count].childName + " routeID "+ cursor[count].routeID + " polylines "+ cursor[count].polylines + " intersections crossed " + cursor[count].intersectX + " streets crossed " + cursor[count].streetX +"</p>";
 				}
 				indexPage += "</body></html>"
 				response.send(indexPage);
@@ -126,13 +126,11 @@ app.get('/deleteAll', function(request, response) {
 
 app.post('/getChildRoutes', function(request, response) {
  	var parentID = request.body.parentID;
-	var childID = request.body.childID;
-	parentID = parentID.replace(/[^\w\s]/gi, '');
-	childID = childID.replace(/[^\w\s]/gi, '');
+	var childName = request.body.childName;
 	response.set('Content-Type', 'text/html');
-	
+
 	db.collection('children', function(err, collection) {
-		collection.find({"childID": childID}).toArray(function(err, cursor) {
+		collection.find({"childName": childName}).toArray(function(err, cursor) {
 			if (err) {
 				response.send(500);
 			}
@@ -143,7 +141,7 @@ app.post('/getChildRoutes', function(request, response) {
 					})
 				response.send(coll);
 				} else 
-					response.send("invald child parent pair");				
+					response.send("invalid child parent pair");				
 			}
 		})
 	})				
@@ -152,7 +150,6 @@ app.post('/getChildRoutes', function(request, response) {
 
 app.post('/getRouteDetails', function(request, response) {
  	var routeID = request.body.routeID;
-	routeID = routeID.replace(/[^\w\s]/gi, '');
 	response.set('Content-Type', 'text/html');
 		db.collection('routes', function(error, coll) {
 			coll.find({"routeID": routeID}).toArray(function(error, saved) {	
