@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>Add Child</title>
+</head>
+
+<body>
+
+	<h1>Add Child</h1>
+	<!-- truncate data entry to 15 characters -->
+	<form method="post" action="http://localhost:3000/addRoute">
+	<p>Child: <input type="text" name="childID" maxlength="15" /></p>
+	<p>Parent: <input type="text" name="parentID" maxlength="15" /></p>
+		<p><input type="submit" /> <input type="reset" /></p>
+	</form>
+</body>
+
+</html>
