@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>Add Child</title>
+</head>
+
+<body>
+
+	<h1>Add Child</h1>
+	
+	<form method="post" action="http://localhost:3000/addChild">
+	<p>Child ID: <input type="text" name="childID" /></p>
+	<p>Child Name: <input type="text" name="childName" /></p>
+	<p>Parent: <input type="text" name="parentID"  /></p>
+		<p><input type="submit" /> <input type="reset" /></p>
+	</form>
+</body>
+
+</html>
