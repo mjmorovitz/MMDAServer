@@ -1,5 +1,6 @@
 // Initialization
 var express = require('express');
+var fs = require("fs");
 
 // Required if we need to use HTTP query or post parameters
 var bodyParser = require('body-parser');
@@ -15,9 +16,34 @@ var MongoClient = require('mongodb').MongoClient, format = require('util').forma
 var db = MongoClient.connect(mongoUri, function(error, databaseConnection) {
 	db = databaseConnection;
 });
-
+var lastTime = null;
 // Serve static content
 app.use(express.static(__dirname + '/public'));
+
+setInterval(function(){fs.readFile("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", 'utf8', function (err,data2) {
+  if (err) {
+    return console.log(err);
+  }
+  fs.stat("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", function(err, data1){
+  var currentTime = data1.mtime;
+ 
+  //first time reading file
+  if(lastTime == null){
+        lastTime = currentTime;
+        console.log(data2);
+
+  }
+  //if timestamp has changed aka file modified, read file
+  if (lastTime.getTime() != currentTime.getTime()){
+        console.log(data2);
+        lastTime = currentTime;
+   }
+})
+
+  
+
+})
+}, 1000);
 
 app.post('/updateRecord', function(request, response) {
 	var type = request.body.type;
