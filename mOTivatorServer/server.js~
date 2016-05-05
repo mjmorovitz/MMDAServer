@@ -23,23 +23,53 @@ setInterval(function(){fs.readFile("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mO
   if (err) {
     return console.log(err);
   }
+  
+  //get data stays for last modified time
   fs.stat("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", function(err, data1){
   var currentTime = data1.mtime;
- 
+  var dataToSend = {currData: data2}
   //first time reading file
   if(lastTime == null){
         lastTime = currentTime;
-        console.log(data2);
-
+        db.collection('data', function(error, coll) {
+        var id = coll.insert(dataToSend, function(error, saved) {
+          if (error) {
+            
+          }
+          else {
+            console.log(dataToSend);
+          }
+      });
+      });
   }
+  //if timestamp has changed aka file modified, read file
   if (lastTime.getTime() != currentTime.getTime()){
-        console.log(data2);
         lastTime = currentTime;
-   }
-})
-
-  
-
+        db.collection('data', function(error, coll) {
+        coll.find({}).toArray(function(error, saved) {  
+            if (error) {
+              
+            } else{
+                coll.remove({},function(err, removed){
+                if (err) {
+                 
+                } 
+                else{
+                   var id = coll.insert(dataToSend, function(error, saved) {
+                   if (error) {
+                      
+                   }
+                   else {
+                     console.log(dataToSend);
+                   }
+                   });
+                }     
+              });
+            }
+          });                                                      
+      })
+  }
+   })
 })
 }, 1000);
 
@@ -144,11 +174,11 @@ console.log("sum is " + sum + " record num is " + numRecords);
 }
 
 app.post('/addTask', function(request, response) {
-	var type = request.body.type;
+	     var type = request.body.type;
         var caretakerInfo = request.body.caretakerInfo;
         var caretakerNotes = request.body.caretakerNotes;
         var startDate = request.body.startDate;
-	var endDate = request.body.endDate;
+	      var endDate = request.body.endDate;
         var completionTime = request.body.completionTime;
         var icon = request.body.icon;
         var caretaker = { 
@@ -200,6 +230,15 @@ app.get('/deleteAll', function(request, response) {
 			}   	
 		});
 	});
+db.collection('tasks',function(err, collection){
+    		collection.remove({},function(err, removed){
+			if (err) {
+				response.send(500)
+			} 
+			else{
+			}   	
+		});
+	});
 });
 
 app.post('/getTasks', function(request, response) {
@@ -219,6 +258,24 @@ app.post('/getTasks', function(request, response) {
 				
 		})
 	})				
-});			
+});		
 
-app.listen(process.env.PORT || 3000);
+app.post('/getData', function(request, response) {
+  var type = request.body.type;
+  
+  response.set('Content-Type', 'text/html');
+
+  db.collection('data', function(err, collection) {
+    collection.find({}).toArray(function(err, cursor) {
+      if (err) {
+        response.send(500);
+      }
+      else {        
+                     
+            response.send(cursor);
+                        }
+        
+    })
+  })        
+}); 
+app.listen(3000, '0.0.0.0');

@@ -14,18 +14,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 var mongoUri = process.env.MONGOLAB_URI || process.env.MONGOHQ_URL || 'mongodb://localhost/mOTivator';
 var MongoClient = require('mongodb').MongoClient, format = require('util').format;
 var db = MongoClient.connect(mongoUri, function(error, databaseConnection) {
-	db = databaseConnection;
+  db = databaseConnection;
 });
 var lastTime = null;
 // Serve static content
 app.use(express.static(__dirname + '/public'));
-setInterval(function(){fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,data2) {
+setInterval(function(){fs.readFile("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", 'utf8', function (err,data2) {
   if (err) {
     return console.log(err);
   }
   
   //get data stays for last modified time
-  fs.stat("/mnt/sd/accel3.txt", function(err, data1){
+  fs.stat("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", function(err, data1){
   var currentTime = data1.mtime;
   var dataToSend = {currData: data2}
   //first time reading file
@@ -34,10 +34,10 @@ setInterval(function(){fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,d
         db.collection('data', function(error, coll) {
         var id = coll.insert(dataToSend, function(error, saved) {
           if (error) {
-            response.send(500);
+            
           }
           else {
-            response.send(200);
+            console.log(dataToSend);
           }
       });
       });
@@ -48,19 +48,19 @@ setInterval(function(){fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,d
         db.collection('data', function(error, coll) {
         coll.find({}).toArray(function(error, saved) {  
             if (error) {
-              response.send(500);
+              
             } else{
                 coll.remove({},function(err, removed){
                 if (err) {
-                  response.send(500)
+                 
                 } 
                 else{
                    var id = coll.insert(dataToSend, function(error, saved) {
                    if (error) {
-                      response.send(500);
+                      
                    }
                    else {
-                      response.send(200);
+                     console.log(dataToSend);
                    }
                    });
                 }     
@@ -74,15 +74,15 @@ setInterval(function(){fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,d
 }, 1000);
 
 app.post('/updateRecord', function(request, response) {
-	var type = request.body.type;
+  var type = request.body.type;
         var newRecord = request.body.record;
-	var sum = 0;
-	response.set('Content-Type', 'text/html');
+  var sum = 0;
+  response.set('Content-Type', 'text/html');
                db.collection('tasks', function(error, coll) {
-			coll.find({"type": type}).toArray(function(error, saved) {	
-						if (error) {
-							response.send(500);
-						} else{
+      coll.find({"type": type}).toArray(function(error, saved) {  
+            if (error) {
+              response.send(500);
+            } else{
                                                        var recordArray = saved[0].record;
                                                        var origColorAll = saved[0].colorAll;
                                                        var origColorWeek = saved[0].colorWeek;
@@ -150,11 +150,11 @@ app.post('/updateRecord', function(request, response) {
                                                                 
                                                                         });
                                                                         response.send(200);
-			                                                }								
-			})
-		})
+                                                      }               
+      })
+    })
 
-	});
+  });
 
 function calcColor(sum, numRecords){
 // color based on number of tasks completed (ie record of 1)
@@ -174,11 +174,11 @@ console.log("sum is " + sum + " record num is " + numRecords);
 }
 
 app.post('/addTask', function(request, response) {
-	     var type = request.body.type;
+       var type = request.body.type;
         var caretakerInfo = request.body.caretakerInfo;
         var caretakerNotes = request.body.caretakerNotes;
         var startDate = request.body.startDate;
-	      var endDate = request.body.endDate;
+        var endDate = request.body.endDate;
         var completionTime = request.body.completionTime;
         var icon = request.body.icon;
         var caretaker = { 
@@ -186,70 +186,79 @@ app.post('/addTask', function(request, response) {
                            notes: caretakerNotes
                         } 
         
-	// no routes when first added
-	var routes = [];
-	var toInsert = {
+  // no routes when first added
+  var routes = [];
+  var toInsert = {
                 "type": type,
-		"caretaker": caretaker,
-		"startDate": startDate,
-		"endDate": endDate,
+    "caretaker": caretaker,
+    "startDate": startDate,
+    "endDate": endDate,
                 "completionTime": completionTime,
                 "record": [],
                 "icon": icon,
                 "colorAll": "green",
                 "colorWeek": "green",
                 "colorMonth": "green"
-	};
-	db.collection('tasks', function(error, coll) {
-		var id = coll.insert(toInsert, function(error, saved) {
-			if (error) {
-				response.send(500);
-			}
-			else {
-				response.send(200);
-			}
-	    });
-	});
+  };
+  db.collection('tasks', function(error, coll) {
+    var id = coll.insert(toInsert, function(error, saved) {
+      if (error) {
+        response.send(500);
+      }
+      else {
+        response.send(200);
+      }
+      });
+  });
 });
 
 app.get('/', function(request, response) {
-	//response.set('Content-Type', 'text/html');
-	var indexPage = '';
-	
-	
+  //response.set('Content-Type', 'text/html');
+  var indexPage = '';
+  
+  
 
 });
 
 app.get('/deleteAll', function(request, response) {
-	db.collection('tasks',function(err, collection){
-    		collection.remove({},function(err, removed){
-			if (err) {
-				response.send(500)
-			} 
-			else{
-			}   	
-		});
-	});
+  db.collection('tasks',function(err, collection){
+        collection.remove({},function(err, removed){
+      if (err) {
+        response.send(500)
+      } 
+      else{
+      }     
+    });
+  });
+db.collection('data',function(err, collection){
+        collection.remove({},function(err, removed){
+      if (err) {
+        response.send(500)
+      } 
+      else{
+      }     
+    });
+  });
 });
 
 app.post('/getTasks', function(request, response) {
- 	var type = request.body.type;
-	
-	response.set('Content-Type', 'text/html');
+  var type = request.body.type;
+  
+  response.set('Content-Type', 'text/html');
 
-	db.collection('tasks', function(err, collection) {
-		collection.find({"type": type}).toArray(function(err, cursor) {
-			if (err) {
-				response.send(500);
-			}
-			else {				
-			               
-						response.send(cursor);
-                        }
-				
-		})
-	})				
-});		
+  db.collection('tasks', function(err, collection) {
+    collection.find({"type": type}).toArray(function(err, cursor) {
+      if (err) {
+        response.send(500);
+      }
+      else {        
+                     
+            response.send(cursor);
+      }
+        
+    })
+  })        
+});   
 
 app.post('/getData', function(request, response) {
   var type = request.body.type;
@@ -269,5 +278,4 @@ app.post('/getData', function(request, response) {
     })
   })        
 }); 
-app.listen(process.env.PORT || 3000);
-
+app.listen(3000, '0.0.0.0');
