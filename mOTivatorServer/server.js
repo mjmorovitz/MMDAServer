@@ -19,29 +19,57 @@ var db = MongoClient.connect(mongoUri, function(error, databaseConnection) {
 var lastTime = null;
 // Serve static content
 app.use(express.static(__dirname + '/public'));
-
-setInterval(function(){fs.readFile("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", 'utf8', function (err,data2) {
+setInterval(function(){fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,data2) {
   if (err) {
     return console.log(err);
   }
-  fs.stat("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", function(err, data1){
+  
+  //get data stays for last modified time
+  fs.stat("/mnt/sd/accel3.txt", function(err, data1){
   var currentTime = data1.mtime;
- 
+  var dataToSend = {currData: data2}
   //first time reading file
   if(lastTime == null){
         lastTime = currentTime;
-        console.log(data2);
-
+        db.collection('data', function(error, coll) {
+        var id = coll.insert(dataToSend, function(error, saved) {
+          if (error) {
+            response.send(500);
+          }
+          else {
+            response.send(200);
+          }
+      });
+      });
   }
   //if timestamp has changed aka file modified, read file
   if (lastTime.getTime() != currentTime.getTime()){
-        console.log(data2);
         lastTime = currentTime;
-   }
-})
-
-  
-
+        db.collection('data', function(error, coll) {
+        coll.find({}).toArray(function(error, saved) {  
+            if (error) {
+              response.send(500);
+            } else{
+                coll.remove({},function(err, removed){
+                if (err) {
+                  response.send(500)
+                } 
+                else{
+                   var id = coll.insert(dataToSend, function(error, saved) {
+                   if (error) {
+                      response.send(500);
+                   }
+                   else {
+                      response.send(200);
+                   }
+                   });
+                }     
+              });
+            }
+          });                                                      
+      })
+  }
+   })
 })
 }, 1000);
 
@@ -146,11 +174,11 @@ console.log("sum is " + sum + " record num is " + numRecords);
 }
 
 app.post('/addTask', function(request, response) {
-	var type = request.body.type;
+	     var type = request.body.type;
         var caretakerInfo = request.body.caretakerInfo;
         var caretakerNotes = request.body.caretakerNotes;
         var startDate = request.body.startDate;
-	var endDate = request.body.endDate;
+	      var endDate = request.body.endDate;
         var completionTime = request.body.completionTime;
         var icon = request.body.icon;
         var caretaker = { 
@@ -221,6 +249,25 @@ app.post('/getTasks', function(request, response) {
 				
 		})
 	})				
-});			
+});		
 
+app.post('/getData', function(request, response) {
+  var type = request.body.type;
+  
+  response.set('Content-Type', 'text/html');
+
+  db.collection('data', function(err, collection) {
+    collection.find({}).toArray(function(err, cursor) {
+      if (err) {
+        response.send(500);
+      }
+      else {        
+                     
+            response.send(cursor);
+                        }
+        
+    })
+  })        
+}); 
 app.listen(process.env.PORT || 3000);
+
