@@ -1,0 +1,7 @@
+HOW TO SET UP SERVER SOMEONWHERE BESIDES YUN:
+
+1. Install Node
+2. In server3.js code update file locations to correspond to new device. ie where you want the task and data files to be stored. Note that the task txt files must be in a directory by themselves. 
+3. Run nodejs server3.js
+
+That's it!

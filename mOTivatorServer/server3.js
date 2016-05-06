@@ -21,6 +21,8 @@ var db = MongoClient.connect(mongoUri, function(error, databaseConnection) {
 var lastTime = null;
 // Serve static content
 app.use(express.static(__dirname + '/public'));
+
+//Commented out because we are reading directly from file oututed by arduino
 /*setInterval(function(){fs.readFile("/mnt/sd/hello.txt", 'utf8', function (err,data2) {
   if (err) {
     return console.log(err);
@@ -54,10 +56,12 @@ app.use(express.static(__dirname + '/public'));
 })
 }, 1000);*/
 
+//To update a record provide type of task this record is for
 app.post('/updateRecord', function(request, response) {
   var type = request.body.type;
-        var newRecord = request.body.record;
+  var newRecord = request.body.record;
   var sum = 0;
+  //change this location if running server off something other than YUN
   fs.readFile("/mnt/sd/Tasks/"+type+".txt", 'utf8', function (err,saved) {
                                                        saved = JSON.parse(saved);
                                                        var recordArray = saved.record;
@@ -74,6 +78,7 @@ app.post('/updateRecord', function(request, response) {
                                                        var numMonthRecords = 0;
                                                        var date = new Date();
 
+                                                       //calculate date for tasks in last 7 days
                                                        var days7  = 7; // Days you want to subtract
                                                        var date7  = new Date();
                                                        var last7  = new Date(date.getTime() - (days7 * 24 * 60 * 60 * 1000));
@@ -82,6 +87,7 @@ app.post('/updateRecord', function(request, response) {
                                                        var year7  = last7.getFullYear();
                                                        date7.setFullYear(year7, month7, day7);
 
+                                                       //calculate date for tasks in the last 3 days
                                                        var days30  = 30; // Days you want to subtract
                                                        var date30  = new Date();
                                                        var last30  = new Date(date.getTime() - (days30 * 24 * 60 * 60 * 1000));
@@ -93,17 +99,19 @@ app.post('/updateRecord', function(request, response) {
                                                        for (var i = 0; i < numRecords; i++){
                                                        testDate = new Date(JSON.parse(recordArray[i]).date);
                                                                 sumAll += JSON.parse(recordArray[i]).bool;
-
+                                                                //task was in last 7 days
                                                                 if (date7 < testDate){
                                                                         numWeekRecords++;
                                                                         sumWeek += JSON.parse(recordArray[i]).bool;
                                                                 }
+                                                                //task was in last 30days
                                                                 if (date30 < testDate){
                                                                         numMonthRecords++;
                                                                         sumMonth += JSON.parse(recordArray[i]).bool;
                                                                 }
                                                         }
                                                        
+                                                       //set colors for all categories 
                                                       var  colorAll = calcColor(sumAll, numRecords);
                                                       if(numMonthRecords != 0){
                                                                 var colorMonth = calcColor(sumMonth, numMonthRecords);
@@ -117,7 +125,7 @@ app.post('/updateRecord', function(request, response) {
                                                                 var colorWeek = origColorWeek;
                                                       }  
 
-                                                      
+                                                      //data to write to file
                                                        var toInsert = {
                                                                 "type": type,
                                                                 "caretaker": saved.caretaker,
@@ -130,7 +138,7 @@ app.post('/updateRecord', function(request, response) {
                                                                 "colorWeek": colorWeek,
                                                                 "colorMonth": colorMonth
                                                         };
-
+  //write to file - change if not using YUN as server
   fs.writeFile("/mnt/sd/Tasks/"+type+".txt", JSON.stringify(toInsert), 'utf8');
                                                                         
                                                                         response.send(200);
@@ -155,6 +163,7 @@ function calcColor(sum, numRecords){
         return color;
 }
 
+//Add a new task to the server data. 
 app.post('/addTask', function(request, response) {
         var type = request.body.type;
         var caretakerInfo = request.body.caretakerInfo;
@@ -168,7 +177,7 @@ app.post('/addTask', function(request, response) {
                            notes: caretakerNotes
                         } 
         
-  // no routes when first added
+  // no routes when first added, init colors are black
   var routes = [];
   var toInsert = {
                 "type": type,
@@ -182,6 +191,7 @@ app.post('/addTask', function(request, response) {
                 "colorWeek": "black",
                 "colorMonth": "black"
   };
+  //change this location if not running server on YUN
   fs.writeFile("/mnt/sd/Tasks/"+type+".txt", JSON.stringify(toInsert), 'utf8');
   response.send(200); 
  
@@ -194,13 +204,17 @@ app.get('/', function(request, response) {
 
 
 var tasks = [];
+//get all Tasks from server
 app.post('/getTasks', function(request, response) {
+   //change this location if not running server on YUN
+   // reads all files in directory called Tasks
    fs.readdir("/mnt/sd/Tasks", function(err, filenames) {
     
     if (err) {
         console.log(err);   
     }
     filenames.forEach(function(filename) {
+    //change this location if not running server on YUN
     fs.readFile("/mnt/sd/Tasks/" + filename, 'utf-8', function(err, content) {
     if (err) {      
         console.log(err);
@@ -215,9 +229,10 @@ response.send(tasks);
  
 });
    
-
+//get data from arduino sensors
 app.post('/getData', function(request, response) {
    response.set('Content-Type', 'text/html');
+  //change this location if not running server on YUN
   fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,saved) {response.send(saved)});
          
 }); 
