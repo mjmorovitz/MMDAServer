@@ -19,22 +19,23 @@ var db = MongoClient.connect(mongoUri, function(error, databaseConnection) {
 var lastTime = null;
 // Serve static content
 app.use(express.static(__dirname + '/public'));
-setInterval(function(){fs.readFile("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", 'utf8', function (err,data2) {
+setInterval(function(){fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,data2) {
   if (err) {
     return console.log(err);
   }
   
   //get data stays for last modified time
-  fs.stat("/home/mmorovitz/MMDA/mOTivator/MMDAServer/mOTivatorServer/hello.txt", function(err, data1){
+  fs.stat("/mnt/sd/accel3.txt", function(err, data1){
   var currentTime = data1.mtime;
   var dataToSend = {currData: data2}
   //first time reading file
   if(lastTime == null){
         lastTime = currentTime;
         db.collection('data', function(error, coll) {
+       if (error){console.log(error);}
         var id = coll.insert(dataToSend, function(error, saved) {
           if (error) {
-            
+          console.log(error);  
           }
           else {
             console.log(dataToSend);
