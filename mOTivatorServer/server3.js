@@ -229,13 +229,24 @@ response.send(tasks);
  
 });
    
+   var rawAccel;
+   var rawGyro;
 //get data from arduino sensors
 app.post('/getData', function(request, response) {
    response.set('Content-Type', 'text/html');
-  //change this location if not running server on YUN
-  fs.readFile("/mnt/sd/accel3.txt", 'utf8', function (err,saved) {response.send(saved)});
-         
-}); 
+   //change this location if not running server on YUN
+   fs.readFile("/mnt/sd/accel.txt", 'utf8', function (err,accel) {  
+      rawAccel = accel;
+      fs.readFile("/mnt/sd/gyro.txt", 'utf8', function (err,gyro) {  
+          rawGyro = gyro;
+          var toInsert = {gyro: rawGyro,
+                          accel: RawGyro};
+          repsonse.send(toInsert);
+    });     
 
+ 
+});
+
+});
 
 app.listen(3000, '0.0.0.0');
